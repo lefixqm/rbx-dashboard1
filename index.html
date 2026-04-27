@@ -301,8 +301,8 @@ hr.div { border:none; border-top:1px solid var(--b1); margin:22px 0; }
 </div>
 
 <script>
-var PROXY = '/.netlify/functions/proxy?url=';
-var PROXY_IMG = '/.netlify/functions/proxy?img=1&url=';
+var PROXY = '/api/proxy?url=';
+var PROXY_IMG = '/api/proxy?img=1&url=';
 var mainCookie = '';
 var adCookie = '';
 var hasAd = false;
@@ -568,9 +568,9 @@ function loadStats() {
         return rbxFetch('https://games.roblox.com/v1/games?universeIds=' + ids, mainCookie)
           .then(function(d) {
             (d.data || []).forEach(function(g) {
-              statsMap[g.id] = { playing: g.playing || 0, visits: g.visits || 0 };
+              statsMap[String(g.id)] = { playing: g.playing || 0, visits: g.visits || 0 };
               // g.rootPlaceId comes from this API — store it indexed by universeId
-              if (g.rootPlaceId) statsMap[g.id].rootPlaceId = g.rootPlaceId;
+              if (g.rootPlaceId) statsMap[String(g.id)].rootPlaceId = g.rootPlaceId;
             });
           })
           .catch(function() {});
@@ -579,7 +579,7 @@ function loadStats() {
         return rbxFetch('https://games.roblox.com/v1/games/votes?universeIds=' + ids, mainCookie)
           .then(function(d) {
             (d.data || []).forEach(function(v) {
-              votesMap[v.id] = { up: v.upVotes || 0 };
+              votesMap[String(v.id)] = { up: v.upVotes || 0 };
             });
           })
           .catch(function() {});
@@ -589,8 +589,9 @@ function loadStats() {
           .then(function(d) {
             console.log('Thumb API response:', JSON.stringify(d).slice(0, 300));
             (d.data || []).forEach(function(t) {
-              console.log('Thumb entry:', t.universeId, t.state, t.imageUrl ? t.imageUrl.slice(0,60) : 'NO URL');
-              if (t.imageUrl) thumbMap[t.universeId] = t.imageUrl;
+              var tid = t.universeId || t.targetId;
+              console.log('Thumb entry:', tid, t.state, t.imageUrl ? t.imageUrl.slice(0,60) : 'NO URL');
+              if (t.imageUrl && tid) thumbMap[String(tid)] = t.imageUrl;
             });
           })
           .catch(function(e) { console.error('Thumb API error:', e); });
@@ -627,10 +628,11 @@ function loadStats() {
     return imgChain;
   }).then(function() {
     allGames.forEach(function(g) {
-      var sm = statsMap[g.universeId] || { playing: 0, visits: 0 };
+      var uid = String(g.universeId);
+      var sm = statsMap[uid] || { playing: 0, visits: 0 };
       g.stats = sm;
-      g.votes = votesMap[g.universeId] || { up: 0 };
-      g.thumb = thumbMap[g.universeId] || null;
+      g.votes = votesMap[uid] || { up: 0 };
+      g.thumb = thumbMap[String(g.universeId)] || null;
       // rootPlaceId from games/v1/games API is most reliable
       if (sm.rootPlaceId) g.rootPlaceId = sm.rootPlaceId;
     });
@@ -836,23 +838,24 @@ function loadPendingAndBalance() {
       console.log('Secret Nights group ID:', secretNightsId);
       // Try transaction-totals
       // Try /v1/group-payouts/pending first, then fallback to transaction-totals
+      // Get group balance + pending from transactions
       return rbxFetch(
         'https://economy.roblox.com/v1/groups/' + secretNightsId + '/currency',
         mainCookie
       ).then(function(d) {
-        console.log('Group currency response:', JSON.stringify(d));
-        // currency = current balance, not pending. Try transaction-totals too
         var balance = d ? (d.robux || 0) : 0;
-        // Now get pending
+        // Calculate pending from group transactions — Sale transactions not yet cleared
         return rbxFetch(
-          'https://economy.roblox.com/v2/groups/' + secretNightsId + '/transaction-totals?timeFrame=Month&transactionType=summary',
+          'https://economy.roblox.com/v2/groups/' + secretNightsId + '/transactions?transactionType=Sale&limit=100',
           mainCookie
         ).then(function(d2) {
-          console.log('Group totals response:', JSON.stringify(d2));
-          var pending = d2 ? (d2.pendingRobuxTotal || d2.pendingRobux || 0) : 0;
-          document.getElementById('pendingGroup').textContent = pending > 0 ? fRbx(pending) : fRbx(balance) + ' (баланс)';
+          var pending = 0;
+          (d2 && d2.data || []).forEach(function(t) {
+            if (t.isPending) pending += (t.currency ? t.currency.amount : 0);
+          });
+          document.getElementById('pendingGroup').textContent = pending > 0 ? fRbx(pending) : fRbx(balance) + ' (баланс гр.)';
         }).catch(function() {
-          document.getElementById('pendingGroup').textContent = fRbx(balance) + ' (баланс)';
+          document.getElementById('pendingGroup').textContent = fRbx(balance) + ' (баланс гр.)';
         });
       });
     }).catch(function(e) {
