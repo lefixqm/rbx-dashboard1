@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBX Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0b0f; --s1:#111318; --s2:#181b22;
+  --b1:rgba(255,255,255,0.07); --b2:rgba(255,255,255,0.13);
+  --ac:#00e5ff; --pu:#7c3aed; --gr:#22c55e; --re:#ef4444; --am:#f59e0b;
+  --tx:#f0f0f0; --mu:#6b7280; --cr:14px;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); color:var(--tx); font-family:'Syne',sans-serif; min-height:100vh; }
+
+/* HEADER */
+.header { display:flex; align-items:center; justify-content:space-between; padding:18px 28px; border-bottom:1px solid var(--b1); position:sticky; top:0; background:rgba(10,11,15,0.95); backdrop-filter:blur(12px); z-index:100; }
+.logo { display:flex; align-items:center; gap:10px; font-size:19px; font-weight:800; }
+.logo-dot { width:9px; height:9px; background:var(--ac); border-radius:50%; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(0,229,255,.5) } 50%{ box-shadow:0 0 0 6px rgba(0,229,255,0) } }
+.hright { display:flex; align-items:center; gap:10px; }
+.abadge { display:flex; align-items:center; gap:8px; background:var(--s2); border:1px solid var(--b2); border-radius:8px; padding:6px 12px; font-size:13px; }
+.aimg { width:26px; height:26px; border-radius:50%; overflow:hidden; flex-shrink:0; }
+.aimg img { width:100%; height:100%; object-fit:cover; }
+.afb { width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,var(--pu),var(--ac)); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
+.sdot { width:7px; height:7px; border-radius:50%; background:var(--gr); }
+
+/* MAIN */
+.main { padding:28px; max-width:1400px; margin:0 auto; }
+
+/* SETUP */
+#setup { display:flex; align-items:center; justify-content:center; min-height:72vh; }
+.scard { background:var(--s1); border:1px solid var(--b2); border-radius:20px; padding:44px; max-width:540px; width:100%; }
+.stitle { font-size:26px; font-weight:800; margin-bottom:8px; }
+.ssub { color:var(--mu); font-size:14px; margin-bottom:28px; line-height:1.65; }
+.slbl { font-size:11px; font-weight:600; color:var(--mu); text-transform:uppercase; letter-spacing:1px; margin-bottom:7px; }
+.sinput { width:100%; background:var(--s2); border:1px solid var(--b2); border-radius:8px; padding:11px 14px; color:var(--tx); font-family:'Space Mono',monospace; font-size:12px; outline:none; transition:border-color .2s; }
+.sinput:focus { border-color:var(--ac); }
+.sinput::placeholder { color:var(--mu); }
+.shint { font-size:12px; color:var(--mu); margin-top:5px; line-height:1.6; }
+.shint a { color:var(--ac); text-decoration:none; }
+.sbtn { width:100%; background:var(--ac); color:#000; border:none; border-radius:8px; padding:13px; font-family:'Syne',sans-serif; font-size:15px; font-weight:700; cursor:pointer; margin-top:8px; transition:opacity .2s; }
+.sbtn:hover { opacity:.85; }
+.sbtn:disabled { opacity:.4; cursor:not-allowed; }
+hr.div { border:none; border-top:1px solid var(--b1); margin:22px 0; }
+.trow { display:flex; align-items:center; justify-content:space-between; cursor:pointer; padding:11px 14px; background:var(--s2); border:1px solid var(--b1); border-radius:8px; margin-bottom:10px; }
+.tsw { width:34px; height:18px; background:var(--b2); border-radius:9px; position:relative; transition:background .2s; flex-shrink:0; }
+.tsw.on { background:var(--pu); }
+.tsw::after { content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; background:white; border-radius:50%; transition:left .2s; }
+.tsw.on::after { left:18px; }
+.errmsg { color:#fca5a5; font-size:13px; margin-top:7px; display:none; background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); border-radius:6px; padding:9px 12px; }
+.ssec { margin-bottom:18px; }
+
+/* LOADING */
+.lov { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; z-index:200; }
+.lsp { width:38px; height:38px; border:3px solid var(--b2); border-top-color:var(--ac); border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg) } }
+.ltxt { font-size:13px; color:var(--mu); font-family:'Space Mono',monospace; max-width:280px; text-align:center; line-height:1.6; }
+
+/* DASHBOARD */
+#dash { display:none; }
+.tbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.lupd { font-size:12px; color:var(--mu); font-family:'Space Mono',monospace; }
+.rbtn { background:var(--s2); border:1px solid var(--b2); color:var(--tx); border-radius:8px; padding:8px 14px; font-family:'Syne',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:7px; }
+.rbtn:hover { border-color:var(--ac); color:var(--ac); }
+.sp { display:inline-block; }
+.rbtn.loading .sp { animation:spin 1s linear infinite; }
+
+/* STAT CARDS */
+.sgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:11px; margin-bottom:26px; }
+.sc { background:var(--s1); border:1px solid var(--b1); border-radius:var(--cr); padding:17px 19px; position:relative; overflow:hidden; }
+.sc::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.sc.cy::before { background:var(--ac); }
+.sc.gr::before { background:var(--gr); }
+.sc.pu::before { background:var(--pu); }
+.sc.am::before { background:var(--am); }
+.slb { font-size:11px; color:var(--mu); margin-bottom:7px; }
+.sv { font-size:22px; font-weight:800; font-family:'Space Mono',monospace; line-height:1; }
+.sv.cy { color:var(--ac); }
+.sv.gr { color:var(--gr); }
+.sv.pu { color:#a78bfa; }
+.sv.am { color:var(--am); }
+
+/* TABS */
+.mtabs { display:flex; gap:4px; margin-bottom:22px; background:var(--s1); border:1px solid var(--b1); border-radius:10px; padding:4px; width:fit-content; }
+.mt { padding:8px 20px; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; color:var(--mu); transition:all .2s; border:none; background:none; font-family:'Syne',sans-serif; }
+.mt.on { background:var(--s2); color:var(--tx); border:1px solid var(--b2); }
+.panel { display:none; }
+.panel.on { display:block; }
+
+/* FILTER */
+.ftabs { display:flex; gap:6px; margin-bottom:14px; }
+.ft { padding:5px 13px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; color:var(--mu); border:1px solid var(--b1); background:none; font-family:'Syne',sans-serif; transition:all .2s; }
+.ft.on { background:var(--s2); color:var(--tx); border-color:var(--b2); }
+
+/* GAMES */
+.ggrid { display:grid; gap:11px; }
+.ggrid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px; }
+.gcard { background:var(--s1); border:1px solid var(--b1); border-radius:var(--cr); overflow:hidden; transition:border-color .2s, transform .15s; cursor:pointer; }
+.gcard:hover { border-color:var(--ac); transform:translateY(-2px); }
+.gthumb { width:100%; aspect-ratio:1/1; background:var(--s2); overflow:hidden; position:relative; }
+.gthumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.gfb { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:40px; }
+.gbody { padding:12px 14px; }
+.gname { font-size:13px; font-weight:700; margin-bottom:6px; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gname a { color:inherit; text-decoration:none; }
+.gname a:hover { color:var(--ac); }
+.gstats-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+.gst { background:var(--s2); border-radius:6px; padding:6px 8px; }
+.gsv { font-size:14px; font-weight:800; font-family:'Space Mono',monospace; line-height:1; }
+.gsl { font-size:9px; color:var(--mu); margin-top:2px; text-transform:uppercase; letter-spacing:.5px; }
+.gsv.cy { color:var(--ac); }
+.gsv.gr { color:var(--gr); }
+.gsv.am { color:var(--am); }
+
+/* SALES */
+.ssumm { display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:11px; margin-bottom:18px; }
+.shdr { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.sfl { background:var(--s2); border:1px solid var(--b2); color:var(--tx); border-radius:8px; padding:7px 11px; font-family:'Syne',sans-serif; font-size:13px; outline:none; cursor:pointer; }
+.stbl-wrap { background:var(--s1); border:1px solid var(--b1); border-radius:var(--cr); overflow:auto; }
+.stbl { width:100%; border-collapse:collapse; font-size:13px; }
+.stbl th { padding:11px 14px; text-align:left; font-size:10px; color:var(--mu); font-weight:600; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid var(--b1); background:var(--s2); white-space:nowrap; }
+.stbl td { padding:11px 14px; border-bottom:1px solid var(--b1); vertical-align:middle; }
+.stbl tr:last-child td { border-bottom:none; }
+.stbl tr:hover td { background:rgba(255,255,255,.02); }
+.tt { font-size:11px; padding:3px 7px; border-radius:4px; font-weight:600; display:inline-block; white-space:nowrap; }
+.tt-s { background:rgba(34,197,94,.12); color:#86efac; border:1px solid rgba(34,197,94,.25); }
+.tt-p { background:rgba(239,68,68,.1); color:#fca5a5; border:1px solid rgba(239,68,68,.2); }
+.tt-d { background:rgba(0,229,255,.1); color:var(--ac); border:1px solid rgba(0,229,255,.2); }
+.tt-o { background:rgba(107,114,128,.12); color:var(--mu); border:1px solid var(--b1); }
+.apos { color:var(--gr); font-weight:700; font-family:'Space Mono',monospace; }
+.aneg { color:var(--re); font-weight:700; font-family:'Space Mono',monospace; }
+
+/* TOP ITEMS */
+.top-list { display:grid; gap:8px; margin-top:4px; }
+.top-item { background:var(--s1); border:1px solid var(--b1); border-radius:var(--cr); padding:14px 18px; display:flex; align-items:center; gap:14px; transition:border-color .2s; }
+.top-item:hover { border-color:var(--b2); }
+.top-rank { font-size:20px; font-weight:800; font-family:'Space Mono',monospace; min-width:32px; text-align:center; }
+.top-rank.r1 { color:#FFD700; }
+.top-rank.r2 { color:#C0C0C0; }
+.top-rank.r3 { color:#CD7F32; }
+.top-rank.rn { color:var(--mu); }
+.top-info { flex:1; min-width:0; }
+.top-name { font-size:14px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.top-count { font-size:11px; color:var(--mu); margin-top:3px; }
+.top-amount { font-size:18px; font-weight:800; font-family:'Space Mono',monospace; color:var(--gr); white-space:nowrap; }
+.top-bar-wrap { height:4px; background:var(--b1); border-radius:2px; margin-top:6px; }
+.top-bar-fill { height:4px; background:var(--gr); border-radius:2px; transition:width .5s; }
+.top-time-btns { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+.top-time-btn { padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; color:var(--mu); border:1px solid var(--b1); background:none; font-family:'Syne',sans-serif; transition:all .2s; }
+.top-time-btn.on { background:var(--s2); color:var(--tx); border-color:var(--b2); }
+/* ADS */
+.adgrid { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-top:14px; }
+.adcard { background:var(--s1); border:1px solid var(--b1); border-radius:var(--cr); padding:19px; }
+.adlbl { font-size:11px; color:var(--mu); margin-bottom:9px; text-transform:uppercase; letter-spacing:.5px; }
+.adbig { font-size:26px; font-weight:800; font-family:'Space Mono',monospace; }
+.adbig.r { color:var(--re); }
+.adbig.g { color:var(--gr); }
+.adrow { margin-top:13px; padding-top:13px; border-top:1px solid var(--b1); display:flex; justify-content:space-between; align-items:center; }
+
+/* MISC */
+.empty { text-align:center; padding:50px 20px; color:var(--mu); font-size:14px; }
+.blog { background:none; border:1px solid var(--b1); color:var(--mu); border-radius:8px; padding:6px 13px; font-family:'Syne',sans-serif; font-size:13px; cursor:pointer; transition:all .2s; }
+.blog:hover { border-color:var(--re); color:var(--re); }
+.sec-title { font-size:12px; font-weight:600; color:var(--mu); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
+
+@media (max-width:680px) {
+  .ggrid { grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px; }
+  .header { padding:13px 15px; }
+  .main { padding:15px; }
+  .adgrid { grid-template-columns:1fr; }
+  .mtabs { width:100%; }
+  .mt { flex:1; padding:8px 6px; font-size:11px; }
+}
+</style>
+</head>
+<body>
+
+<div class="lov" id="lov" style="display:none">
+  <div class="lsp"></div>
+  <div class="ltxt" id="ltxt">Загрузка...</div>
+</div>
+
+<div class="header">
+  <div class="logo"><div class="logo-dot"></div>RBX Dashboard</div>
+  <div class="hright" id="hright" style="display:none">
+    <div class="abadge">
+      <div class="aimg" id="haimg"><div class="afb" id="afb">?</div></div>
+      <span id="hun">—</span>
+      <div class="sdot"></div>
+    </div>
+    <button class="blog" id="logoutbtn">Выйти</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <div id="setup">
+    <div class="scard">
+      <div class="stitle">Войти в аккаунт</div>
+      <div class="ssub">Введи .ROBLOSECURITY cookie. Данные хранятся только в браузере.</div>
+      <div class="ssec">
+        <div class="slbl">Основной аккаунт — .ROBLOSECURITY</div>
+        <input class="sinput" type="password" id="mc" placeholder="_|WARNING:-DO-NOT-SHARE-THIS..." autocomplete="off">
+        <div class="shint">Как получить: <a href="https://www.roblox.com" target="_blank">roblox.com</a> → F12 → Application → Cookies → roblox.com → .ROBLOSECURITY</div>
+        <div class="errmsg" id="merr">Ошибка авторизации. Куки устарели — скопируй заново.</div>
+      </div>
+      <hr class="div">
+      <div class="trow" id="adtogrow">
+        <span style="font-size:14px">Добавить рекламный аккаунт</span>
+        <div class="tsw" id="adtsw"></div>
+      </div>
+      <div id="adsec" style="display:none">
+        <div class="ssec">
+          <div class="slbl">Рекламный аккаунт — .ROBLOSECURITY</div>
+          <input class="sinput" type="password" id="adc" placeholder="_|WARNING:-DO-NOT-SHARE-THIS..." autocomplete="off">
+        </div>
+      </div>
+      <button class="sbtn" id="loginbtn">Войти и загрузить данные</button>
+    </div>
+  </div>
+
+  <div id="dash">
+    <div class="tbar">
+      <div></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="lupd" id="lupd"></span>
+        <button class="rbtn" id="refreshbtn"><span class="sp">&#8635;</span> Обновить</button>
+      </div>
+    </div>
+
+    <div class="sec-title">Сводка</div>
+    <div class="sgrid">
+      <div class="sc cy"><div class="slb">Активных игроков</div><div class="sv cy" id="sumActive">—</div></div>
+      <div class="sc pu"><div class="slb">Визиты всего</div><div class="sv pu" id="sumVisits">—</div></div>
+    </div>
+
+    <div class="mtabs">
+      <button class="mt on" id="tab-games">&#127918; Игры</button>
+      <button class="mt" id="tab-sales">&#128176; Продажи</button>
+      <button class="mt" id="tab-top">&#127942; Топ продаж</button>
+      <button class="mt" id="tab-ads" style="display:none">&#128226; Реклама</button>
+    </div>
+
+    <div class="panel on" id="panel-games">
+
+      <div class="ggrid" id="ggrid"><div class="empty">Загрузка...</div></div>
+    </div>
+
+    <div class="panel" id="panel-sales">
+
+      <div class="ssumm" style="margin-bottom:14px">
+        <div class="sc cy"><div class="slb">Pending Robux (аккаунт)</div><div class="sv cy" id="pendingUser">...</div></div>
+        <div class="sc pu"><div class="slb">Pending Robux (99 BEST MODS)</div><div class="sv pu" id="pendingGroup">...</div></div>
+        <div class="sc gr"><div class="slb">Баланс аккаунта</div><div class="sv gr" id="balanceUser">...</div></div>
+      </div>
+      <div class="sec-title" style="margin-top:4px">Продажи за период</div>
+      <div class="ssumm" id="salesByTime" style="margin-bottom:18px">
+        <div class="sc gr"><div class="slb">За 1 час</div><div class="sv gr" id="sales1h">...</div></div>
+        <div class="sc gr"><div class="slb">За 3 часа</div><div class="sv gr" id="sales3h">...</div></div>
+        <div class="sc gr"><div class="slb">За 6 часов</div><div class="sv gr" id="sales6h">...</div></div>
+        <div class="sc gr"><div class="slb">За 12 часов</div><div class="sv gr" id="sales12h">...</div></div>
+        <div class="sc gr"><div class="slb">Сегодня (с 00:00 МСК)</div><div class="sv gr" id="sales24h">...</div></div>
+      </div>
+      <div class="shdr">
+        <select class="sfl" id="txtime">
+          <option value="1">За час</option>
+          <option value="10">За 10 часов</option>
+          <option value="24" selected>За 24 часа</option>
+          <option value="all">Все время</option>
+        </select>
+        <select class="sfl" id="txtype">
+          <option value="">Все типы</option>
+          <option value="Sale">Продажи</option>
+          <option value="Purchase">Покупки</option>
+          <option value="DevEx">DevEx</option>
+          <option value="GroupPayout">Выплаты группы</option>
+          <option value="AffiliateSale">Аффилиат</option>
+        </select>
+        <select class="sfl" id="txcnt">
+          <option value="50">50 записей</option>
+          <option value="100">100 записей</option>
+          <option value="all">Все загруженные</option>
+        </select>
+        <button class="rbtn" id="loadmorebtn">Ещё &#8595;</button>
+      </div>
+      <div class="stbl-wrap">
+        <table class="stbl">
+          <thead><tr>
+            <th>Дата</th><th>Тип</th><th>Описание</th><th style="text-align:right">Сумма</th>
+          </tr></thead>
+          <tbody id="stbody"><tr><td colspan="4" class="empty">Загружаю...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-top">
+      <div class="sec-title">Топ продаваемых предметов</div>
+      <div class="top-time-btns">
+        <button class="top-time-btn on" id="topbtn-today" onclick="switchTopTime('today',this)">Сегодня (МСК)</button>
+        <button class="top-time-btn" id="topbtn-24h" onclick="switchTopTime('24h',this)">За 24 часа</button>
+        <button class="top-time-btn" id="topbtn-7d" onclick="switchTopTime('7d',this)">За 7 дней</button>
+        <button class="top-time-btn" id="topbtn-all" onclick="switchTopTime('all',this)">Всё время</button>
+      </div>
+      <div class="top-list" id="top-list"><div class="empty">Загрузка...</div></div>
+    </div>
+
+    <div class="panel" id="panel-ads">
+      <div class="sec-title">Рекламный аккаунт — сегодня</div>
+      <div class="adgrid">
+        <div class="adcard">
+          <div class="adlbl">Затраты на рекламу</div>
+          <div class="adbig r" id="adSpend">—</div>
+          <div style="font-size:11px;color:var(--mu);margin-top:4px">Robux потрачено сегодня</div>
+        </div>
+        <div class="adcard">
+          <div class="adlbl">Доход с игр</div>
+          <div class="adbig g" id="adRev">—</div>
+          <div style="font-size:11px;color:var(--mu);margin-top:4px">Robux получено сегодня</div>
+          <div class="adrow">
+            <span style="font-size:12px;color:var(--mu)">Чистая прибыль</span>
+            <span style="font-size:15px;font-weight:700;font-family:'Space Mono',monospace" id="adProfit">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var PROXY = '/api/proxy?url=';
+var PROXY_IMG = '/api/proxy?img=1&url=';
+var mainCookie = '';
+var adCookie = '';
+var hasAd = false;
+var userId = null;
+var userName = '';
+var allGames = [];
+var allTx = [];
+var txCursor = '';
+var currentFilter = 'all';
+
+function showLoad(txt) {
+  document.getElementById('lov').style.display = 'flex';
+  document.getElementById('ltxt').textContent = txt || 'Загрузка...';
+}
+function hideLoad() {
+  document.getElementById('lov').style.display = 'none';
+}
+
+function rbxFetch(url, cookie) {
+  return fetch(PROXY + encodeURIComponent(url), {
+    headers: { 'x-roblox-cookie': cookie || mainCookie }
+  }).then(function(r) {
+    return r.text();
+  }).then(function(txt) {
+    if (!txt) throw new Error('Empty response from: ' + url);
+    var d = JSON.parse(txt);
+    if (d.errors && d.errors[0]) throw new Error(d.errors[0].message || 'Roblox API error');
+    return d;
+  });
+}
+
+function rbxImg(url) {
+  return fetch(PROXY_IMG + encodeURIComponent(url), {
+    headers: { 'x-roblox-cookie': mainCookie }
+  }).then(function(r) {
+    return r.json();
+  }).then(function(d) {
+    return d.dataUrl || null;
+  }).catch(function() { return null; });
+}
+
+function chunkArr(arr, n) {
+  var out = [];
+  for (var i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
+  return out;
+}
+
+function todayStr() {
+  // Moscow time UTC+3
+  var now = new Date();
+  var msk = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+  return msk.toISOString().split('T')[0];
+}
+
+// Returns Date object for today 00:00 MSK
+function todayMskStart() {
+  var now = new Date();
+  var msk = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+  var y = msk.getUTCFullYear();
+  var m = msk.getUTCMonth();
+  var d = msk.getUTCDate();
+  // 00:00 MSK = 21:00 previous day UTC
+  return new Date(Date.UTC(y, m, d, 0, 0, 0) - 3 * 60 * 60 * 1000);
+}
+
+function fNum(n) {
+  if (n === null || n === undefined) return '0';
+  n = Number(n);
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return Math.round(n).toLocaleString('ru-RU');
+}
+
+function fRbx(n) {
+  if (n === null || n === undefined) return '—';
+  return 'R\u00A0' + Math.round(n).toLocaleString('ru-RU');
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fDate(iso) {
+  try {
+    var d = new Date(iso);
+    return d.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'2-digit' }) +
+           ' ' + d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+  } catch(e) { return iso; }
+}
+
+/* ---- TOGGLE AD ---- */
+document.getElementById('adtogrow').addEventListener('click', function() {
+  hasAd = !hasAd;
+  document.getElementById('adtsw').classList.toggle('on', hasAd);
+  document.getElementById('adsec').style.display = hasAd ? 'block' : 'none';
+});
+
+/* ---- LOGIN ---- */
+document.getElementById('loginbtn').addEventListener('click', function() {
+  doLogin();
+});
+
+function doLogin() {
+  var btn = document.getElementById('loginbtn');
+  btn.disabled = true;
+  btn.textContent = 'Проверяю...';
+  document.getElementById('merr').style.display = 'none';
+
+  mainCookie = document.getElementById('mc').value.trim();
+  adCookie = document.getElementById('adc').value.trim();
+
+  showLoad('Авторизация...');
+
+  rbxFetch('https://users.roblox.com/v1/users/authenticated', mainCookie)
+    .then(function(u) {
+      userId = u.id;
+      userName = u.name;
+      saveSession();
+      setHeader();
+      return loadAll();
+    })
+    .catch(function() {
+      hideLoad();
+      document.getElementById('merr').style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Войти и загрузить данные';
+    });
+}
+
+function saveSession() {
+  localStorage.setItem('rbx_c', mainCookie);
+  localStorage.setItem('rbx_id', String(userId));
+  localStorage.setItem('rbx_n', userName);
+  if (hasAd && adCookie) {
+    localStorage.setItem('rbx_a', adCookie);
+    localStorage.setItem('rbx_ha', '1');
+  }
+}
+
+function setHeader() {
+  document.getElementById('hun').textContent = userName;
+  document.getElementById('afb').textContent = userName.slice(0, 2).toUpperCase();
+  document.getElementById('hright').style.display = 'flex';
+
+  rbxFetch('https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=' + userId + '&size=48x48&format=Png&isCircular=true', mainCookie)
+    .then(function(d) {
+      var url = d && d.data && d.data[0] && d.data[0].imageUrl;
+      if (!url) return;
+      return rbxImg(url);
+    })
+    .then(function(du) {
+      if (!du) return;
+      var img = document.createElement('img');
+      img.src = du;
+      var c = document.getElementById('haimg');
+      c.innerHTML = '';
+      c.appendChild(img);
+    })
+    .catch(function() {});
+}
+
+/* ---- LOAD ALL DATA ---- */
+function loadAll() {
+  showLoad('Загружаю твои игры...');
+  allGames = [];
+
+  return loadOwnGames()
+    .then(function() { return loadGroupGames(); })
+    .then(function() { return loadStats(); })
+    .then(function() { return loadRevenue(); })
+    .then(function() {
+      updateSummary();
+      renderGames(allGames);
+      return loadTransactions();
+    })
+    .then(function() {
+      renderSales();
+      loadPendingAndBalance();
+      if (hasAd && adCookie) {
+        document.getElementById('tab-ads').style.display = '';
+        return loadAdStats();
+      }
+    })
+    .then(function() {
+      document.getElementById('lupd').textContent = 'Обновлено: ' + new Date().toLocaleTimeString('ru-RU');
+      document.getElementById('setup').style.display = 'none';
+      document.getElementById('dash').style.display = 'block';
+      hideLoad();
+    })
+    .catch(function(e) {
+      hideLoad();
+      alert('Ошибка: ' + e.message + '\n\nОткрой F12 и напиши что в Console.');
+    });
+}
+
+function loadOwnGames() {
+  var cursor = '';
+  function nextPage() {
+    var url = 'https://games.roblox.com/v2/users/' + userId + '/games?accessFilter=Public&limit=50' + (cursor ? '&cursor=' + cursor : '');
+    return rbxFetch(url, mainCookie).then(function(d) {
+      (d.data || []).forEach(function(g) {
+        allGames.push(Object.assign({}, g, { source: 'own', rootPlaceId: g.rootPlaceId || null }));
+      });
+      cursor = d.nextPageCursor || '';
+      if (cursor) return nextPage();
+    });
+  }
+  return nextPage();
+}
+
+function loadGroupGames() {
+  showLoad('Загружаю группы...');
+  return rbxFetch('https://groups.roblox.com/v2/users/' + userId + '/groups/roles', mainCookie)
+    .then(function(gd) {
+      var groups = (gd.data || []).map(function(it) { return it.group; });
+      var chain = Promise.resolve();
+      groups.forEach(function(grp) {
+        chain = chain.then(function() {
+          showLoad('Группа: ' + grp.name);
+          var cur = '';
+          function nextPage() {
+            var url = 'https://games.roblox.com/v2/groups/' + grp.id + '/games?accessFilter=Public&limit=50' + (cur ? '&cursor=' + cur : '');
+            return rbxFetch(url, mainCookie).then(function(d) {
+              (d.data || []).forEach(function(g) {
+                allGames.push(Object.assign({}, g, { source: 'group', gname: grp.name, gid: grp.id, rootPlaceId: g.rootPlaceId || null }));
+              });
+              cur = d.nextPageCursor || '';
+              if (cur) return nextPage();
+            }).catch(function() {});
+          }
+          return nextPage();
+        });
+      });
+      return chain;
+    })
+    .catch(function() {});
+}
+
+function loadStats() {
+  showLoad('Загружаю статистику...');
+
+  // In games v2 API, "id" field IS the universe ID
+  allGames.forEach(function(g) { g.universeId = g.id; });
+
+  var uids = [];
+  var seen = {};
+  allGames.forEach(function(g) {
+    if (g.universeId && !seen[g.universeId]) { seen[g.universeId] = true; uids.push(g.universeId); }
+  });
+
+  var statsMap = {};
+  var votesMap = {};
+  var thumbMap = {};
+
+  var chunks = chunkArr(uids, 50);
+  var chain = Promise.resolve();
+
+  chunks.forEach(function(chunk) {
+    var ids = chunk.join(',');
+    chain = chain
+      .then(function() {
+        return rbxFetch('https://games.roblox.com/v1/games?universeIds=' + ids, mainCookie)
+          .then(function(d) {
+            (d.data || []).forEach(function(g) {
+              statsMap[String(g.id)] = { playing: g.playing || 0, visits: g.visits || 0 };
+              // g.rootPlaceId comes from this API — store it indexed by universeId
+              if (g.rootPlaceId) statsMap[String(g.id)].rootPlaceId = g.rootPlaceId;
+            });
+          })
+          .catch(function() {});
+      })
+      .then(function() {
+        return rbxFetch('https://games.roblox.com/v1/games/votes?universeIds=' + ids, mainCookie)
+          .then(function(d) {
+            (d.data || []).forEach(function(v) {
+              votesMap[String(v.id)] = { up: v.upVotes || 0 };
+            });
+          })
+          .catch(function() {});
+      })
+      .then(function() {
+        return rbxFetch('https://thumbnails.roblox.com/v1/games/icons?universeIds=' + ids + '&size=150x150&format=Png&isCircular=false', mainCookie)
+          .then(function(d) {
+            console.log('Thumb API response:', JSON.stringify(d).slice(0, 300));
+            (d.data || []).forEach(function(t) {
+              var tid = t.universeId || t.targetId;
+              console.log('Thumb entry:', tid, t.state, t.imageUrl ? t.imageUrl.slice(0,60) : 'NO URL');
+              if (t.imageUrl && tid) thumbMap[String(tid)] = t.imageUrl;
+            });
+          })
+          .catch(function(e) { console.error('Thumb API error:', e); });
+      });
+  });
+
+  return chain.then(function() {
+    // Load thumbnails via proxy — try direct first, fallback to proxy
+    showLoad('Загружаю картинки игр...');
+    var uids = Object.keys(thumbMap);
+    var imgChain = Promise.resolve();
+    for (var i = 0; i < uids.length; i += 5) {
+      (function(batch) {
+        imgChain = imgChain.then(function() {
+          return Promise.all(batch.map(function(uid) {
+            var imgUrl = thumbMap[uid];
+            console.log('Loading thumb via proxy, uid:', uid, 'url:', imgUrl.slice(0,60));
+            return fetch(PROXY_IMG + encodeURIComponent(imgUrl), {
+              headers: { 'x-roblox-cookie': mainCookie }
+            }).then(function(r) { return r.json(); })
+              .then(function(d) {
+                if (d && d.dataUrl) {
+                  thumbMap[uid] = d.dataUrl;
+                  console.log('Thumb loaded OK for uid:', uid);
+                } else {
+                  console.warn('Thumb proxy no dataUrl for uid:', uid, d);
+                }
+              })
+              .catch(function(e) { console.error('Thumb proxy error uid:', uid, e); });
+          }));
+        });
+      })(uids.slice(i, i + 5));
+    }
+    return imgChain;
+  }).then(function() {
+    allGames.forEach(function(g) {
+      var uid = String(g.universeId);
+      var sm = statsMap[uid] || { playing: 0, visits: 0 };
+      g.stats = sm;
+      g.votes = votesMap[uid] || { up: 0 };
+      g.thumb = thumbMap[String(g.universeId)] || null;
+      // rootPlaceId from games/v1/games API is most reliable
+      if (sm.rootPlaceId) g.rootPlaceId = sm.rootPlaceId;
+    });
+  });
+}
+
+function loadRevenue() {
+  // Calculate revenue from Sale transactions since 00:00 MSK — most reliable method
+  showLoad('Считаю доход за сегодня...');
+  var mskStart = todayMskStart();
+  var total = allTx
+    .filter(function(t) { return t.transactionType === 'Sale' && new Date(t.created) >= mskStart; })
+    .reduce(function(s, t) { return s + (t.currency ? t.currency.amount : 0); }, 0);
+
+  // Per-game revenue — use developer-stats with correct format
+  var chain = Promise.resolve();
+  allGames.forEach(function(g) {
+    g.revToday = 0;
+    if (!g.universeId) return;
+    chain = chain.then(function() {
+      // Add delay to avoid 429
+      return new Promise(function(res) { setTimeout(res, 300); }).then(function() {
+        return rbxFetch(
+          'https://economycreatorstats.roblox.com/v1/universes/' + g.universeId + '/stats?metrics=Revenue&startTime=' + todayStr() + 'T00%3A00%3A00.000Z&endTime=' + todayStr() + 'T23%3A59%3A59.000Z&granularity=Daily',
+          mainCookie
+        ).then(function(d) {
+          if (d && d.data && d.data[0] && d.data[0].dataPoints && d.data[0].dataPoints[0]) {
+            g.revToday = d.data[0].dataPoints[0][1] || 0;
+          }
+        }).catch(function() {});
+      });
+    });
+  });
+  return chain;
+}
+
+function fetchTxType(type, cursor, cutoff, accumulated) {
+  accumulated = accumulated || [];
+  var url = 'https://economy.roblox.com/v2/users/' + userId +
+    '/transactions?transactionType=' + type + '&limit=100' + (cursor ? '&cursor=' + cursor : '');
+  return new Promise(function(res) { setTimeout(res, 250); }).then(function() {
+    return rbxFetch(url, mainCookie);
+  }).then(function(d) {
+    var items = (d.data || []).map(function(t) {
+      return Object.assign({}, t, { transactionType: t.transactionType || type });
+    });
+    accumulated = accumulated.concat(items);
+    var nextCursor = d.nextPageCursor || '';
+    // For Sale type: keep paginating until we have 25h of data or no more pages
+    if (type === 'Sale' && nextCursor && items.length > 0) {
+      var oldest = new Date(items[items.length - 1].created);
+      if (oldest > cutoff) {
+        return fetchTxType(type, nextCursor, cutoff, accumulated);
+      }
+    }
+    return accumulated;
+  }).catch(function() { return accumulated; });
+}
+
+function loadTransactions() {
+  showLoad('Загружаю транзакции...');
+  // cutoff = 25 hours ago (a bit more than 24 to be safe)
+  var cutoff = new Date(Date.now() - 25 * 60 * 60 * 1000);
+  var types = ['Sale', 'Purchase', 'AffiliateSale', 'DevEx', 'GroupPayout', 'AdSpend', 'PremiumStipend', 'EngagementPayout'];
+  var chain = Promise.resolve();
+  types.forEach(function(type) {
+    chain = chain.then(function() {
+      showLoad('Транзакции: ' + type + '...');
+      return fetchTxType(type, '', cutoff, []).then(function(items) {
+        allTx = allTx.concat(items);
+      });
+    });
+  });
+  return chain.then(function() {
+    allTx.sort(function(a, b) { return new Date(b.created) - new Date(a.created); });
+  });
+}
+
+document.getElementById('loadmorebtn').addEventListener('click', function() {
+  var btn = document.getElementById('loadmorebtn');
+  var type = document.getElementById('txtype').value || 'Sale';
+  btn.textContent = 'Загружаю...';
+  btn.disabled = true;
+  rbxFetch(
+    'https://economy.roblox.com/v2/users/' + userId + '/transactions?transactionType=' + type + '&limit=100',
+    mainCookie
+  ).then(function(d) {
+    var items = (d.data || []).map(function(t) {
+      return Object.assign({}, t, { transactionType: t.transactionType || type });
+    });
+    allTx = allTx.concat(items);
+    allTx.sort(function(a, b) { return new Date(b.created) - new Date(a.created); });
+    renderSales();
+    btn.textContent = 'Ещё ↓';
+    btn.disabled = false;
+  }).catch(function() {
+    btn.textContent = 'Ещё ↓';
+    btn.disabled = false;
+  });
+});
+
+/* ---- RENDER SALES ---- */
+document.getElementById('txtime').addEventListener('change', renderSales);
+document.getElementById('txtype').addEventListener('change', renderSales);
+document.getElementById('txcnt').addEventListener('change', renderSales);
+
+function txLabel(type) {
+  var m = {
+    Sale: ['Продажа', 'tt-s'],
+    Purchase: ['Покупка', 'tt-p'],
+    DevEx: ['DevEx', 'tt-d'],
+    GroupPayout: ['Выплата', 'tt-d'],
+    AdSpend: ['Реклама', 'tt-p'],
+    Premium: ['Премиум', 'tt-s'],
+    AffiliateSale: ['Аффилиат', 'tt-s'],
+    CurrencyPurchase: ['Покупка R$', 'tt-p']
+  };
+  return m[type] || [type || 'Другое', 'tt-o'];
+}
+
+function renderSales() {
+  var timeF = document.getElementById('txtime').value;
+  var tf = document.getElementById('txtype').value;
+  var cnt = document.getElementById('txcnt').value;
+  var list = allTx;
+  if (timeF !== 'all') {
+    var cutoff = new Date(Date.now() - parseInt(timeF) * 60 * 60 * 1000);
+    list = list.filter(function(t) { return new Date(t.created) >= cutoff; });
+  }
+  if (tf) list = list.filter(function(t) { return t.transactionType === tf; });
+  if (cnt !== 'all') list = list.slice(0, parseInt(cnt));
+
+
+
+  var tbody = document.getElementById('stbody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">Транзакций не найдено</td></tr>';
+    return;
+  }
+  // Recalculate sales by time every render
+  calcSalesByTime();
+
+  tbody.innerHTML = list.map(function(t) {
+    var amt = t.currency ? t.currency.amount : 0;
+    var ac = amt >= 0 ? 'apos' : 'aneg';
+    var as = (amt >= 0 ? '+' : '') + fRbx(amt);
+    var lbl = txLabel(t.transactionType);
+    var desc = t.details ? (t.details.name || t.details.description || t.transactionType || '') : (t.transactionType || '');
+    return '<tr>' +
+      '<td style="color:var(--mu);font-family:\'Space Mono\',monospace;font-size:11px;white-space:nowrap">' + fDate(t.created) + '</td>' +
+      '<td><span class="tt ' + lbl[1] + '">' + escHtml(lbl[0]) + '</span></td>' +
+      '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(desc) + '</td>' +
+      '<td style="text-align:right" class="' + ac + '">' + as + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+/* ---- PENDING & BALANCE ---- */
+function loadPendingAndBalance() {
+  // User balance
+  rbxFetch('https://economy.roblox.com/v1/users/' + userId + '/currency', mainCookie)
+    .then(function(d) {
+      document.getElementById('balanceUser').textContent = fRbx(d.robux || 0);
+    }).catch(function() { document.getElementById('balanceUser').textContent = '—'; });
+
+  // User pending — use Month timeframe
+  rbxFetch('https://economy.roblox.com/v2/users/' + userId + '/transaction-totals?timeFrame=Month&transactionType=summary', mainCookie)
+    .then(function(d) {
+      var pending = (d && d.pendingRobuxTotal) ? d.pendingRobuxTotal : 0;
+      document.getElementById('pendingUser').textContent = fRbx(pending);
+    }).catch(function() { document.getElementById('pendingUser').textContent = '—'; });
+
+  // Get all user groups and find 99 BEST MODS
+  // Try v2 endpoint first
+  rbxFetch('https://groups.roblox.com/v2/users/' + userId + '/groups/roles', mainCookie)
+    .then(function(d) {
+      var secretNightsId = null;
+      var allGroupNames = [];
+      (d.data || []).forEach(function(item) {
+        var grp = item.group;
+        if (!grp) return;
+        allGroupNames.push(grp.name + '(' + grp.id + ')');
+        var nm = (grp.name || '').toLowerCase();
+        if (nm.indexOf('99 best mods') !== -1 || nm.indexOf('99 best mod') !== -1) {
+          secretNightsId = grp.id;
+        }
+      });
+      // Fallback: from games list
+      if (!secretNightsId) {
+        allGames.forEach(function(g) {
+          if (!g.gname) return;
+          var nm = g.gname.toLowerCase();
+          if (nm.indexOf('99 best mods') !== -1 || nm.indexOf('99 best mod') !== -1) {
+            secretNightsId = g.gid;
+          }
+        });
+      }
+      if (!secretNightsId) {
+        document.getElementById('pendingGroup').textContent = 'ID не найден';
+        console.warn('99 BEST MODS not found. Groups:', allGroupNames.join(', '));
+        return;
+      }
+      console.log('99 BEST MODS group ID:', secretNightsId);
+      // Try transaction-totals
+      // Try /v1/group-payouts/pending first, then fallback to transaction-totals
+      // Get group balance + pending from transactions
+      return rbxFetch(
+        'https://economy.roblox.com/v1/groups/' + secretNightsId + '/currency',
+        mainCookie
+      ).then(function(d) {
+        var balance = d ? (d.robux || 0) : 0;
+        // Calculate pending from group transactions — Sale transactions not yet cleared
+        return rbxFetch(
+          'https://economy.roblox.com/v2/groups/' + secretNightsId + '/transactions?transactionType=Sale&limit=100',
+          mainCookie
+        ).then(function(d2) {
+          var pending = 0;
+          (d2 && d2.data || []).forEach(function(t) {
+            if (t.isPending) pending += (t.currency ? t.currency.amount : 0);
+          });
+          document.getElementById('pendingGroup').textContent = pending > 0 ? fRbx(pending) : fRbx(balance) + ' (баланс гр.)';
+        }).catch(function() {
+          document.getElementById('pendingGroup').textContent = fRbx(balance) + ' (баланс гр.)';
+        });
+      });
+    }).catch(function(e) {
+      console.error('Group pending error:', e);
+      document.getElementById('pendingGroup').textContent = '—';
+    });
+
+  // Sales by time period — calculated from loaded transactions
+  calcSalesByTime();
+}
+
+function calcSalesByTime() {
+  var now = Date.now();
+  // Hour-based periods
+  var hourPeriods = [
+    { hours: 1,  id: 'sales1h' },
+    { hours: 3,  id: 'sales3h' },
+    { hours: 6,  id: 'sales6h' },
+    { hours: 12, id: 'sales12h' },
+  ];
+  hourPeriods.forEach(function(p) {
+    var cutoff = new Date(now - p.hours * 60 * 60 * 1000);
+    var total = allTx
+      .filter(function(t) { return t.transactionType === 'Sale' && new Date(t.created) >= cutoff; })
+      .reduce(function(s, t) { return s + (t.currency ? t.currency.amount : 0); }, 0);
+    document.getElementById(p.id).textContent = fRbx(total);
+  });
+  // 24h = since today 00:00 MSK
+  var mskStart = todayMskStart();
+  var total24 = allTx
+    .filter(function(t) { return t.transactionType === 'Sale' && new Date(t.created) >= mskStart; })
+    .reduce(function(s, t) { return s + (t.currency ? t.currency.amount : 0); }, 0);
+  document.getElementById('sales24h').textContent = fRbx(total24);
+}
+
+/* ---- AD STATS ---- */
+function loadAdStats() {
+  var spend = 0;
+  return rbxFetch('https://ads.roblox.com/v1/sponsored-games?startDate=' + todayStr() + '&endDate=' + todayStr(), adCookie)
+    .then(function(d) {
+      if (d && d.sponsoredGames) {
+        spend = d.sponsoredGames.reduce(function(s, g) { return s + (g.totalSpent || 0); }, 0);
+      }
+    })
+    .catch(function() {})
+    .then(function() {
+      var rev = allGames.reduce(function(s, g) { return s + (g.revToday || 0); }, 0);
+      document.getElementById('adSpend').textContent = fRbx(spend);
+      document.getElementById('adRev').textContent = fRbx(rev);
+      var pf = rev - spend;
+      var el = document.getElementById('adProfit');
+      el.textContent = (pf >= 0 ? '+' : '') + fRbx(pf);
+      el.style.color = pf >= 0 ? 'var(--gr)' : 'var(--re)';
+    });
+}
+
+/* ---- UPDATE SUMMARY ---- */
+function updateSummary() {
+  var snGames = allGames.filter(function(g) { return g.gname && g.gname.toLowerCase().indexOf('99 best mods') !== -1; });
+  document.getElementById('sumActive').textContent = fNum(snGames.reduce(function(s, g) { return s + (g.stats.playing || 0); }, 0));
+  document.getElementById('sumVisits').textContent = fNum(snGames.reduce(function(s, g) { return s + (g.stats.visits || 0); }, 0));
+
+}
+
+/* ---- FILTER GAMES ---- */
+
+
+function renderGames(list) {
+  var grid = document.getElementById('ggrid');
+  // Показываем ТОЛЬКО игры группы 99 BEST MODS
+  var filtered = list.filter(function(g) {
+    if (!g.gname) return false;
+    var nm = g.gname.toLowerCase();
+    return nm.indexOf('99 best mods') !== -1 || nm.indexOf('99 best mod') !== -1;
+  });
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty">Игры 99 BEST MODS не найдены. Убедись что группа загружена.</div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(function(g) {
+    var placeId = g.rootPlaceId;
+    var gameUrl = placeId
+      ? 'https://www.roblox.com/games/' + placeId
+      : 'https://www.roblox.com/games/' + g.id;
+    var thumbPart = g.thumb
+      ? '<img src="' + g.thumb + '" alt="" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
+        '<div class="gfb" style="display:none">&#127918;</div>'
+      : '<div class="gfb">&#127918;</div>';
+    return '<div class="gcard" onclick="window.open(\'' + gameUrl + '\',\'_blank\')">' +
+      '<div class="gthumb">' + thumbPart + '</div>' +
+      '<div class="gbody">' +
+        '<div class="gname"><a href="' + gameUrl + '" target="_blank" onclick="event.stopPropagation()">' + escHtml(g.name) + '</a></div>' +
+        '<div class="gstats-grid">' +
+          '<div class="gst"><div class="gsv cy">' + fNum(g.stats.playing || 0) + '</div><div class="gsl">&#128100; Онлайн</div></div>' +
+          '<div class="gst"><div class="gsv">' + fNum(g.stats.visits || 0) + '</div><div class="gsl">&#128065; Визиты</div></div>' +
+          '<div class="gst"><div class="gsv am">' + fNum(g.votes.up || 0) + '</div><div class="gsl">&#128077; Лайки</div></div>' +
+          '<div class="gst"><div class="gsv gr">' + (g.revToday > 0 ? fRbx(g.revToday) : '—') + '</div><div class="gsl">&#128176; Доход</div></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ---- TABS ---- */
+document.getElementById('tab-games').addEventListener('click', function() { switchTab('games'); });
+document.getElementById('tab-sales').addEventListener('click', function() { switchTab('sales'); });
+document.getElementById('tab-top').addEventListener('click', function() { switchTab('top'); renderTopItems('today'); });
+document.getElementById('tab-ads').addEventListener('click', function() { switchTab('ads'); });
+
+function switchTab(tab) {
+  var tabs = ['games', 'sales', 'top', 'ads'];
+  tabs.forEach(function(t) {
+    var tabEl = document.getElementById('tab-' + t);
+    if (tabEl) tabEl.classList.toggle('on', t === tab);
+    var panelEl = document.getElementById('panel-' + t);
+    if (panelEl) panelEl.classList.toggle('on', t === tab);
+  });
+}
+
+/* ---- REFRESH ---- */
+document.getElementById('refreshbtn').addEventListener('click', function() {
+  var btn = document.getElementById('refreshbtn');
+  btn.classList.add('loading');
+  allTx = []; txCursor = '';
+  loadAll().then(function() { btn.classList.remove('loading'); });
+});
+
+/* ---- TOP ITEMS ---- */
+var currentTopTime = 'today';
+
+function switchTopTime(period, btn) {
+  currentTopTime = period;
+  document.querySelectorAll('.top-time-btn').forEach(function(b) { b.classList.remove('on'); });
+  btn.classList.add('on');
+  renderTopItems(period);
+}
+
+function renderTopItems(period) {
+  var now = Date.now();
+  var cutoff;
+  if (period === 'today') {
+    cutoff = todayMskStart();
+  } else if (period === '24h') {
+    cutoff = new Date(now - 24 * 60 * 60 * 1000);
+  } else if (period === '7d') {
+    cutoff = new Date(now - 7 * 24 * 60 * 60 * 1000);
+  } else {
+    cutoff = new Date(0);
+  }
+
+  // Filter Sale transactions in period
+  var sales = allTx.filter(function(t) {
+    return t.transactionType === 'Sale' && new Date(t.created) >= cutoff;
+  });
+
+  if (!sales.length) {
+    document.getElementById('top-list').innerHTML = '<div class="empty">Нет продаж за этот период</div>';
+    return;
+  }
+
+  // Group by item name
+  var itemMap = {};
+  sales.forEach(function(t) {
+    var name = (t.details && (t.details.name || t.details.description)) || 'Неизвестный предмет';
+    var amount = t.currency ? t.currency.amount : 0;
+    if (!itemMap[name]) itemMap[name] = { name: name, total: 0, count: 0 };
+    itemMap[name].total += amount;
+    itemMap[name].count += 1;
+  });
+
+  // Sort by total robux descending
+  var items = Object.values(itemMap).sort(function(a, b) { return b.total - a.total; });
+  var maxTotal = items[0] ? items[0].total : 1;
+
+  var rankClasses = ['r1', 'r2', 'r3'];
+  var medals = ['🥇', '🥈', '🥉'];
+
+  document.getElementById('top-list').innerHTML = items.slice(0, 20).map(function(item, i) {
+    var rankClass = i < 3 ? rankClasses[i] : 'rn';
+    var rankLabel = i < 3 ? medals[i] : '#' + (i + 1);
+    var barWidth = Math.round((item.total / maxTotal) * 100);
+    return '<div class="top-item">' +
+      '<div class="top-rank ' + rankClass + '">' + rankLabel + '</div>' +
+      '<div class="top-info">' +
+        '<div class="top-name">' + escHtml(item.name) + '</div>' +
+        '<div class="top-count">' + item.count + ' продаж</div>' +
+        '<div class="top-bar-wrap"><div class="top-bar-fill" style="width:' + barWidth + '%"></div></div>' +
+      '</div>' +
+      '<div class="top-amount">' + fRbx(item.total) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ---- LOGOUT ---- */
+document.getElementById('logoutbtn').addEventListener('click', function() {
+  if (!confirm('Выйти?')) return;
+  ['rbx_c','rbx_id','rbx_n','rbx_a','rbx_ha'].forEach(function(k) { localStorage.removeItem(k); });
+  location.reload();
+});
+
+/* ---- AUTO LOGIN ---- */
+window.addEventListener('DOMContentLoaded', function() {
+  var c = localStorage.getItem('rbx_c');
+  if (!c) return;
+  mainCookie = c;
+  document.getElementById('mc').value = c;
+  userId = parseInt(localStorage.getItem('rbx_id') || '0');
+  userName = localStorage.getItem('rbx_n') || '';
+  var a = localStorage.getItem('rbx_a');
+  if (localStorage.getItem('rbx_ha') && a) {
+    adCookie = a;
+    hasAd = true;
+    document.getElementById('adc').value = a;
+    document.getElementById('adtsw').classList.add('on');
+    document.getElementById('adsec').style.display = 'block';
+  }
+  if (userName) setHeader();
+  doLogin();
+});
+</script>
+</body>
+</html>
