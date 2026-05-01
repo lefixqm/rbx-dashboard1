@@ -133,6 +133,24 @@ hr.div { border:none; border-top:1px solid var(--b1); margin:22px 0; }
 .apos { color:var(--gr); font-weight:700; font-family:'Space Mono',monospace; }
 .aneg { color:var(--re); font-weight:700; font-family:'Space Mono',monospace; }
 
+/* TOP ITEMS */
+.top-list { display:grid; gap:8px; margin-top:4px; }
+.top-item { background:var(--s1); border:1px solid var(--b1); border-radius:var(--cr); padding:14px 18px; display:flex; align-items:center; gap:14px; transition:border-color .2s; }
+.top-item:hover { border-color:var(--b2); }
+.top-rank { font-size:20px; font-weight:800; font-family:'Space Mono',monospace; min-width:32px; text-align:center; }
+.top-rank.r1 { color:#FFD700; }
+.top-rank.r2 { color:#C0C0C0; }
+.top-rank.r3 { color:#CD7F32; }
+.top-rank.rn { color:var(--mu); }
+.top-info { flex:1; min-width:0; }
+.top-name { font-size:14px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.top-count { font-size:11px; color:var(--mu); margin-top:3px; }
+.top-amount { font-size:18px; font-weight:800; font-family:'Space Mono',monospace; color:var(--gr); white-space:nowrap; }
+.top-bar-wrap { height:4px; background:var(--b1); border-radius:2px; margin-top:6px; }
+.top-bar-fill { height:4px; background:var(--gr); border-radius:2px; transition:width .5s; }
+.top-time-btns { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+.top-time-btn { padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; color:var(--mu); border:1px solid var(--b1); background:none; font-family:'Syne',sans-serif; transition:all .2s; }
+.top-time-btn.on { background:var(--s2); color:var(--tx); border-color:var(--b2); }
 /* ADS */
 .adgrid { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-top:14px; }
 .adcard { background:var(--s1); border:1px solid var(--b1); border-radius:var(--cr); padding:19px; }
@@ -222,6 +240,7 @@ hr.div { border:none; border-top:1px solid var(--b1); margin:22px 0; }
     <div class="mtabs">
       <button class="mt on" id="tab-games">&#127918; Игры</button>
       <button class="mt" id="tab-sales">&#128176; Продажи</button>
+      <button class="mt" id="tab-top">&#127942; Топ продаж</button>
       <button class="mt" id="tab-ads" style="display:none">&#128226; Реклама</button>
     </div>
 
@@ -275,6 +294,17 @@ hr.div { border:none; border-top:1px solid var(--b1); margin:22px 0; }
           <tbody id="stbody"><tr><td colspan="4" class="empty">Загружаю...</td></tr></tbody>
         </table>
       </div>
+    </div>
+
+    <div class="panel" id="panel-top">
+      <div class="sec-title">Топ продаваемых предметов</div>
+      <div class="top-time-btns">
+        <button class="top-time-btn on" id="topbtn-today" onclick="switchTopTime('today',this)">Сегодня (МСК)</button>
+        <button class="top-time-btn" id="topbtn-24h" onclick="switchTopTime('24h',this)">За 24 часа</button>
+        <button class="top-time-btn" id="topbtn-7d" onclick="switchTopTime('7d',this)">За 7 дней</button>
+        <button class="top-time-btn" id="topbtn-all" onclick="switchTopTime('all',this)">Всё время</button>
+      </div>
+      <div class="top-list" id="top-list"><div class="empty">Загрузка...</div></div>
     </div>
 
     <div class="panel" id="panel-ads">
@@ -962,10 +992,11 @@ function renderGames(list) {
 /* ---- TABS ---- */
 document.getElementById('tab-games').addEventListener('click', function() { switchTab('games'); });
 document.getElementById('tab-sales').addEventListener('click', function() { switchTab('sales'); });
+document.getElementById('tab-top').addEventListener('click', function() { switchTab('top'); renderTopItems('today'); });
 document.getElementById('tab-ads').addEventListener('click', function() { switchTab('ads'); });
 
 function switchTab(tab) {
-  var tabs = ['games', 'sales', 'ads'];
+  var tabs = ['games', 'sales', 'top', 'ads'];
   tabs.forEach(function(t) {
     var tabEl = document.getElementById('tab-' + t);
     if (tabEl) tabEl.classList.toggle('on', t === tab);
@@ -981,6 +1012,72 @@ document.getElementById('refreshbtn').addEventListener('click', function() {
   allTx = []; txCursor = '';
   loadAll().then(function() { btn.classList.remove('loading'); });
 });
+
+/* ---- TOP ITEMS ---- */
+var currentTopTime = 'today';
+
+function switchTopTime(period, btn) {
+  currentTopTime = period;
+  document.querySelectorAll('.top-time-btn').forEach(function(b) { b.classList.remove('on'); });
+  btn.classList.add('on');
+  renderTopItems(period);
+}
+
+function renderTopItems(period) {
+  var now = Date.now();
+  var cutoff;
+  if (period === 'today') {
+    cutoff = todayMskStart();
+  } else if (period === '24h') {
+    cutoff = new Date(now - 24 * 60 * 60 * 1000);
+  } else if (period === '7d') {
+    cutoff = new Date(now - 7 * 24 * 60 * 60 * 1000);
+  } else {
+    cutoff = new Date(0);
+  }
+
+  // Filter Sale transactions in period
+  var sales = allTx.filter(function(t) {
+    return t.transactionType === 'Sale' && new Date(t.created) >= cutoff;
+  });
+
+  if (!sales.length) {
+    document.getElementById('top-list').innerHTML = '<div class="empty">Нет продаж за этот период</div>';
+    return;
+  }
+
+  // Group by item name
+  var itemMap = {};
+  sales.forEach(function(t) {
+    var name = (t.details && (t.details.name || t.details.description)) || 'Неизвестный предмет';
+    var amount = t.currency ? t.currency.amount : 0;
+    if (!itemMap[name]) itemMap[name] = { name: name, total: 0, count: 0 };
+    itemMap[name].total += amount;
+    itemMap[name].count += 1;
+  });
+
+  // Sort by total robux descending
+  var items = Object.values(itemMap).sort(function(a, b) { return b.total - a.total; });
+  var maxTotal = items[0] ? items[0].total : 1;
+
+  var rankClasses = ['r1', 'r2', 'r3'];
+  var medals = ['🥇', '🥈', '🥉'];
+
+  document.getElementById('top-list').innerHTML = items.slice(0, 20).map(function(item, i) {
+    var rankClass = i < 3 ? rankClasses[i] : 'rn';
+    var rankLabel = i < 3 ? medals[i] : '#' + (i + 1);
+    var barWidth = Math.round((item.total / maxTotal) * 100);
+    return '<div class="top-item">' +
+      '<div class="top-rank ' + rankClass + '">' + rankLabel + '</div>' +
+      '<div class="top-info">' +
+        '<div class="top-name">' + escHtml(item.name) + '</div>' +
+        '<div class="top-count">' + item.count + ' продаж</div>' +
+        '<div class="top-bar-wrap"><div class="top-bar-fill" style="width:' + barWidth + '%"></div></div>' +
+      '</div>' +
+      '<div class="top-amount">' + fRbx(item.total) + '</div>' +
+    '</div>';
+  }).join('');
+}
 
 /* ---- LOGOUT ---- */
 document.getElementById('logoutbtn').addEventListener('click', function() {
