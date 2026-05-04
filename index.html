@@ -553,6 +553,10 @@ function loadGroupGames() {
   return rbxFetch('https://groups.roblox.com/v2/users/' + userId + '/groups/roles', mainCookie)
     .then(function(gd) {
       var groups = (gd.data || []).map(function(it) { return it.group; });
+      // Добавляем Night Funny по ID если её нет в списке
+      var nightFunnyId = 96322287;
+      var hasNF = groups.some(function(g) { return g.id === nightFunnyId; });
+      if (!hasNF) groups.push({ id: nightFunnyId, name: 'Night Funny' });
       var chain = Promise.resolve();
       groups.forEach(function(grp) {
         chain = chain.then(function() {
@@ -575,7 +579,6 @@ function loadGroupGames() {
     })
     .catch(function() {});
 }
-
 function loadStats() {
   showLoad('Загружаю статистику...');
 
