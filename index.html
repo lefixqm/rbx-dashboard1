@@ -998,6 +998,10 @@ function renderGames(list) {
       : '<div class="empty">Игры Night Funny не найдены.</div>';
   }
 }
+document.getElementById('tab-games').addEventListener('click', function() { switchTab('games'); });
+document.getElementById('tab-sales').addEventListener('click', function() { switchTab('sales'); });
+document.getElementById('tab-top').addEventListener('click', function() { switchTab('top'); renderTopItems('today'); });
+
 function switchTab(tab) {
   var tabs = ['games', 'sales', 'top', 'ads'];
   tabs.forEach(function(t) {
