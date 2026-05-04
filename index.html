@@ -513,6 +513,7 @@ function loadAll() {
       return loadTransactions();
     })
     .then(function() {
+      renderGames(allGames);
       renderSales();
       loadPendingAndBalance();
       if (hasAd && adCookie) {
@@ -955,6 +956,29 @@ function updateSummary() {
 
 /* ---- FILTER GAMES ---- */
 
+
+function gameCardHtml(g) {
+  var placeId = g.rootPlaceId;
+  var gameUrl = placeId
+    ? 'https://www.roblox.com/games/' + placeId
+    : 'https://www.roblox.com/games/' + g.id;
+  var thumbPart = g.thumb
+    ? '<img src="' + g.thumb + '" alt="" onerror="this.style.display='none';this.nextSibling.style.display='flex'">' +
+      '<div class="gfb" style="display:none">&#127918;</div>'
+    : '<div class="gfb">&#127918;</div>';
+  return '<div class="gcard" onclick="window.open('' + gameUrl + '','_blank')">' +
+    '<div class="gthumb">' + thumbPart + '</div>' +
+    '<div class="gbody">' +
+      '<div class="gname"><a href="' + gameUrl + '" target="_blank" onclick="event.stopPropagation()">' + escHtml(g.name) + '</a></div>' +
+      '<div class="gstats-grid">' +
+        '<div class="gst"><div class="gsv cy">' + fNum(g.stats.playing || 0) + '</div><div class="gsl">&#128100; Онлайн</div></div>' +
+        '<div class="gst"><div class="gsv">' + fNum(g.stats.visits || 0) + '</div><div class="gsl">&#128065; Визиты</div></div>' +
+        '<div class="gst"><div class="gsv am">' + fNum(g.votes.up || 0) + '</div><div class="gsl">&#128077; Лайки</div></div>' +
+        '<div class="gst"><div class="gsv gr">' + (g.revToday > 0 ? fRbx(g.revToday) : '—') + '</div><div class="gsl">&#128176; Доход</div></div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
 
 function renderGames(list) {
   var grid = document.getElementById('ggrid');
