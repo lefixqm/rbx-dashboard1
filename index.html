@@ -962,19 +962,18 @@ function gameCardHtml(g) {
   var gameUrl = placeId
     ? 'https://www.roblox.com/games/' + placeId
     : 'https://www.roblox.com/games/' + g.id;
-  var thumbPart = g.thumb
-    ? '<img src="' + g.thumb + '" alt="" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
-      '<div class="gfb" style="display:none">&#127918;</div>'
+  var thumbHtml = g.thumb
+    ? '<img src="' + g.thumb + '" alt="">'
     : '<div class="gfb">&#127918;</div>';
   return '<div class="gcard" onclick="window.open(\'' + gameUrl + '\',\'_blank\')">' +
-    '<div class="gthumb">' + thumbPart + '</div>' +
+    '<div class="gthumb">' + thumbHtml + '</div>' +
     '<div class="gbody">' +
       '<div class="gname"><a href="' + gameUrl + '" target="_blank" onclick="event.stopPropagation()">' + escHtml(g.name) + '</a></div>' +
       '<div class="gstats-grid">' +
-        '<div class="gst"><div class="gsv cy">' + fNum(g.stats.playing || 0) + '</div><div class="gsl">&#128100; Онлайн</div></div>' +
-        '<div class="gst"><div class="gsv">' + fNum(g.stats.visits || 0) + '</div><div class="gsl">&#128065; Визиты</div></div>' +
-        '<div class="gst"><div class="gsv am">' + fNum(g.votes.up || 0) + '</div><div class="gsl">&#128077; Лайки</div></div>' +
-        '<div class="gst"><div class="gsv gr">' + (g.revToday > 0 ? fRbx(g.revToday) : '—') + '</div><div class="gsl">&#128176; Доход</div></div>' +
+        '<div class="gst"><div class="gsv cy">' + fNum(g.stats.playing || 0) + '</div><div class="gsl">Онлайн</div></div>' +
+        '<div class="gst"><div class="gsv">' + fNum(g.stats.visits || 0) + '</div><div class="gsl">Визиты</div></div>' +
+        '<div class="gst"><div class="gsv am">' + fNum(g.votes.up || 0) + '</div><div class="gsl">Лайки</div></div>' +
+        '<div class="gst"><div class="gsv gr">' + (g.revToday > 0 ? fRbx(g.revToday) : '—') + '</div><div class="gsl">Доход</div></div>' +
       '</div>' +
     '</div>' +
   '</div>';
@@ -982,46 +981,20 @@ function gameCardHtml(g) {
 
 function renderGames(list) {
   var grid = document.getElementById('ggrid');
-  // Показываем ТОЛЬКО игры группы 99 BEST MODS
-  var filtered = list.filter(function(g) {
-    if (!g.gname) return false;
-    var nm = g.gname.toLowerCase();
-    return nm.indexOf('99 best mods') !== -1 || nm.indexOf('99 best mod') !== -1;
-  });
-  if (!filtered.length) {
-    grid.innerHTML = '<div class="empty">Игры 99 BEST MODS не найдены. Убедись что группа загружена.</div>';
-    return;
+  var gridNF = document.getElementById('ggrid-nf');
+
+  var bestMods = list.filter(function(g) { return g.gname === '99 BEST MODS'; });
+  grid.innerHTML = bestMods.length
+    ? bestMods.map(gameCardHtml).join('')
+    : '<div class="empty">Игры 99 BEST MODS не найдены.</div>';
+
+  if (gridNF) {
+    var nightFunny = list.filter(function(g) { return g.gname === 'Night Funny'; });
+    gridNF.innerHTML = nightFunny.length
+      ? nightFunny.map(gameCardHtml).join('')
+      : '<div class="empty">Игры Night Funny не найдены.</div>';
   }
-  grid.innerHTML = filtered.map(function(g) {
-    var placeId = g.rootPlaceId;
-    var gameUrl = placeId
-      ? 'https://www.roblox.com/games/' + placeId
-      : 'https://www.roblox.com/games/' + g.id;
-    var thumbPart = g.thumb
-      ? '<img src="' + g.thumb + '" alt="" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
-        '<div class="gfb" style="display:none">&#127918;</div>'
-      : '<div class="gfb">&#127918;</div>';
-    return '<div class="gcard" onclick="window.open(\'' + gameUrl + '\',\'_blank\')">' +
-      '<div class="gthumb">' + thumbPart + '</div>' +
-      '<div class="gbody">' +
-        '<div class="gname"><a href="' + gameUrl + '" target="_blank" onclick="event.stopPropagation()">' + escHtml(g.name) + '</a></div>' +
-        '<div class="gstats-grid">' +
-          '<div class="gst"><div class="gsv cy">' + fNum(g.stats.playing || 0) + '</div><div class="gsl">&#128100; Онлайн</div></div>' +
-          '<div class="gst"><div class="gsv">' + fNum(g.stats.visits || 0) + '</div><div class="gsl">&#128065; Визиты</div></div>' +
-          '<div class="gst"><div class="gsv am">' + fNum(g.votes.up || 0) + '</div><div class="gsl">&#128077; Лайки</div></div>' +
-          '<div class="gst"><div class="gsv gr">' + (g.revToday > 0 ? fRbx(g.revToday) : '—') + '</div><div class="gsl">&#128176; Доход</div></div>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
 }
-
-/* ---- TABS ---- */
-document.getElementById('tab-games').addEventListener('click', function() { switchTab('games'); });
-document.getElementById('tab-sales').addEventListener('click', function() { switchTab('sales'); });
-document.getElementById('tab-top').addEventListener('click', function() { switchTab('top'); renderTopItems('today'); });
-document.getElementById('tab-ads').addEventListener('click', function() { switchTab('ads'); });
-
 function switchTab(tab) {
   var tabs = ['games', 'sales', 'top', 'ads'];
   tabs.forEach(function(t) {
