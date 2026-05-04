@@ -710,7 +710,7 @@ function fetchTxType(type, cursor, cutoff, accumulated) {
   accumulated = accumulated || [];
   var url = 'https://economy.roblox.com/v2/users/' + userId +
     '/transactions?transactionType=' + type + '&limit=100' + (cursor ? '&cursor=' + cursor : '');
-  return new Promise(function(res) { setTimeout(res, 250); }).then(function() {
+  return new Promise(function(res) { setTimeout(res, 600); }).then(function() {
     return rbxFetch(url, mainCookie);
   }).then(function(d) {
     var items = (d.data || []).map(function(t) {
@@ -733,7 +733,7 @@ function loadTransactions() {
   showLoad('Загружаю транзакции...');
   // cutoff = 25 hours ago (a bit more than 24 to be safe)
   var cutoff = new Date(Date.now() - 25 * 60 * 60 * 1000);
-  var types = ['Sale', 'Purchase', 'AffiliateSale', 'DevEx', 'GroupPayout', 'AdSpend', 'PremiumStipend', 'EngagementPayout'];
+  var types = ['Sale', 'Purchase', 'DevEx', 'GroupPayout'];
   var chain = Promise.resolve();
   types.forEach(function(type) {
     chain = chain.then(function() {
