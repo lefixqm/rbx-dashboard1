@@ -514,19 +514,27 @@ function loadAll() {
     })
     .then(function() {
       renderGames(allGames);
-      renderSales();
-      loadPendingAndBalance();
-      if (hasAd && adCookie) {
-        document.getElementById('tab-ads').style.display = '';
-        return loadAdStats();
-      }
-    })
-    .then(function() {
+      // Show dashboard immediately — don't wait for transactions
       document.getElementById('lupd').textContent = 'Обновлено: ' + new Date().toLocaleTimeString('ru-RU');
       document.getElementById('setup').style.display = 'none';
       document.getElementById('dash').style.display = 'block';
       hideLoad();
+      // Load transactions in background
+      showLoad('Загружаю транзакции...');
+      loadTransactions().then(function() {
+        renderGames(allGames);
+        renderSales();
+        loadPendingAndBalance();
+        calcSalesByTime();
+        hideLoad();
+        document.getElementById('lupd').textContent = 'Обновлено: ' + new Date().toLocaleTimeString('ru-RU');
+      });
+      if (hasAd && adCookie) {
+        document.getElementById('tab-ads').style.display = '';
+        loadAdStats();
+      }
     })
+    .then(function() {})
     .catch(function(e) {
       hideLoad();
       alert('Ошибка: ' + e.message + '\n\nОткрой F12 и напиши что в Console.');
