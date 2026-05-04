@@ -848,8 +848,8 @@ function loadPendingAndBalance() {
         var grp = item.group;
         if (!grp) return;
         allGroupNames.push(grp.name + '(' + grp.id + ')');
-        var nm = (grp.name || '').toLowerCase();
-        if (nm.indexOf('99 best mods') !== -1 || nm.indexOf('99 best mod') !== -1) {
+        var nm = grp.name || '';
+        if (nm === '99 BEST MODS') {
           secretNightsId = grp.id;
         }
       });
@@ -947,7 +947,7 @@ function loadAdStats() {
 
 /* ---- UPDATE SUMMARY ---- */
 function updateSummary() {
-  var snGames = allGames.filter(function(g) { return g.gname && g.gname.toLowerCase().indexOf('99 best mods') !== -1; });
+  var snGames = allGames.filter(function(g) { return g.gname === '99 BEST MODS' || g.gname === 'Night Funny'; });
   document.getElementById('sumActive').textContent = fNum(snGames.reduce(function(s, g) { return s + (g.stats.playing || 0); }, 0));
   document.getElementById('sumVisits').textContent = fNum(snGames.reduce(function(s, g) { return s + (g.stats.visits || 0); }, 0));
 
