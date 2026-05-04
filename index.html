@@ -963,10 +963,10 @@ function gameCardHtml(g) {
     ? 'https://www.roblox.com/games/' + placeId
     : 'https://www.roblox.com/games/' + g.id;
   var thumbPart = g.thumb
-    ? '<img src="' + g.thumb + '" alt="" onerror="this.style.display='none';this.nextSibling.style.display='flex'">' +
+    ? '<img src="' + g.thumb + '" alt="" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
       '<div class="gfb" style="display:none">&#127918;</div>'
     : '<div class="gfb">&#127918;</div>';
-  return '<div class="gcard" onclick="window.open('' + gameUrl + '','_blank')">' +
+  return '<div class="gcard" onclick="window.open(\'' + gameUrl + '\',\'_blank\')">' +
     '<div class="gthumb">' + thumbPart + '</div>' +
     '<div class="gbody">' +
       '<div class="gname"><a href="' + gameUrl + '" target="_blank" onclick="event.stopPropagation()">' + escHtml(g.name) + '</a></div>' +
