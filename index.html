@@ -246,7 +246,7 @@ hr.div { border:none; border-top:1px solid var(--b1); margin:22px 0; }
 
     <div class="panel on" id="panel-games">
 
-      <div class="sec-title" id="title-99bestmods" style="margin-bottom:14px">99 BEST MODS</div>
+      <div class="sec-title" id="title-99bestmods" style="margin-bottom:14px">OKEY LETS GO WE DO IT 67</div>
       <div class="ggrid" id="ggrid"><div class="empty">Загрузка...</div></div>
       <div class="sec-title" style="margin-top:28px;margin-bottom:14px">Night Funny</div>
       <div class="ggrid" id="ggrid-nf"><div class="empty">Загрузка...</div></div>
@@ -256,7 +256,7 @@ hr.div { border:none; border-top:1px solid var(--b1); margin:22px 0; }
 
       <div class="ssumm" style="margin-bottom:14px">
         <div class="sc cy"><div class="slb">Pending Robux (аккаунт)</div><div class="sv cy" id="pendingUser">...</div></div>
-        <div class="sc pu"><div class="slb">Pending Robux (99 BEST MODS)</div><div class="sv pu" id="pendingGroup">...</div></div>
+        <div class="sc pu"><div class="slb">Pending Robux (OKEY LETS GO WE DO IT 67)</div><div class="sv pu" id="pendingGroup">...</div></div>
         <div class="sc gr"><div class="slb">Баланс аккаунта</div><div class="sv gr" id="balanceUser">...</div></div>
       </div>
       <div class="sec-title" style="margin-top:4px">Продажи за период</div>
@@ -850,7 +850,7 @@ function loadPendingAndBalance() {
       document.getElementById('pendingUser').textContent = fRbx(pending);
     }).catch(function() { document.getElementById('pendingUser').textContent = '—'; });
 
-  // Get all user groups and find 99 BEST MODS
+  // Get all user groups and find OKEY LETS GO WE DO IT 67
   // Try v2 endpoint first
   rbxFetch('https://groups.roblox.com/v2/users/' + userId + '/groups/roles', mainCookie)
     .then(function(d) {
@@ -861,7 +861,7 @@ function loadPendingAndBalance() {
         if (!grp) return;
         allGroupNames.push(grp.name + '(' + grp.id + ')');
         var nm = grp.name || '';
-        if (nm === '99 BEST MODS') {
+        if (nm === 'OKEY LETS GO WE DO IT 67') {
           secretNightsId = grp.id;
         }
       });
@@ -877,10 +877,10 @@ function loadPendingAndBalance() {
       }
       if (!secretNightsId) {
         document.getElementById('pendingGroup').textContent = 'ID не найден';
-        console.warn('99 BEST MODS not found. Groups:', allGroupNames.join(', '));
+        console.warn('OKEY LETS GO WE DO IT 67 not found. Groups:', allGroupNames.join(', '));
         return;
       }
-      console.log('99 BEST MODS group ID:', secretNightsId);
+      console.log('OKEY LETS GO WE DO IT 67 group ID:', secretNightsId);
       // Try transaction-totals
       // Try /v1/group-payouts/pending first, then fallback to transaction-totals
       // Get group balance + pending from transactions
@@ -959,7 +959,7 @@ function loadAdStats() {
 
 /* ---- UPDATE SUMMARY ---- */
 function updateSummary() {
-  var snGames = allGames.filter(function(g) { return g.gname === '99 BEST MODS' || g.gname === 'Night Funny'; });
+  var snGames = allGames.filter(function(g) { return g.gname === 'OKEY LETS GO WE DO IT 67' || g.gname === 'Night Funny'; });
   document.getElementById('sumActive').textContent = fNum(snGames.reduce(function(s, g) { return s + (g.stats.playing || 0); }, 0));
   document.getElementById('sumVisits').textContent = fNum(snGames.reduce(function(s, g) { return s + (g.stats.visits || 0); }, 0));
 
@@ -994,10 +994,10 @@ function renderGames(list) {
   var grid = document.getElementById('ggrid');
   var gridNF = document.getElementById('ggrid-nf');
 
-  var bestMods = list.filter(function(g) { return g.gname === '99 BEST MODS'; });
+  var bestMods = list.filter(function(g) { return g.gname === 'OKEY LETS GO WE DO IT 67'; });
   grid.innerHTML = bestMods.length
     ? bestMods.map(gameCardHtml).join('')
-    : '<div class="empty">Игры 99 BEST MODS не найдены.</div>';
+    : '<div class="empty">Игры OKEY LETS GO WE DO IT 67 не найдены.</div>';
 
   if (gridNF) {
     var nightFunny = list.filter(function(g) { return g.gname === 'Night Funny'; });
