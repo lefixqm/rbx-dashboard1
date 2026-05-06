@@ -521,6 +521,7 @@ function loadAll() {
       hideLoad();
       // Load transactions in background
       showLoad('Загружаю транзакции...');
+      allTx = []; txCursor = '';
       loadTransactions().then(function() {
         renderGames(allGames);
         renderSales();
